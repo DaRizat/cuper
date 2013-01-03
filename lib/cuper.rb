@@ -5,23 +5,27 @@ module Cuper
 
   class CLI
 
+    include Cuper::DSL
+
     def init
       gem_dir = File.dirname(__FILE__)
       wiki_name = "confluence"
+      @wiki_conf = YAML::load(File.open("#{gem_dir}/../config/#{wiki_name}.yml"))
     end
 
     def run
+      @config = YAML::load(File.open("#{Dir.pwd}/config/cuper.yml"))
+
       Dir.glob("**/*.feature") do |filename|
         File.open(filename, "r") do |infile|
 
           puts "Wikifying #{filename}" 
-         
-          outfile_name = filename.split(".")[0]
-          outfile = File.open("#{outfile_name}.wiki", "w")
+          outfile_name = filename.split("/").last.split(".")[0]
+          outfile = File.open("#{@config['output']['dir']}/#{outfile_name}.wiki", "w")
 
           table_header = false
           in_scenario = false
-          in_thens = false
+          step_type = ""
 
           while( line = infile.gets )
 
@@ -30,36 +34,36 @@ module Cuper
             case line
               
               when /Feature:/
-                outline = line.gsub /(Feature:)/, 'h2. {color:blue}*\1*{color}' if line =~ /Feature:/
+               outline = feature_for line, @config['feature']
 
               when /(Scenario:|Background:)/
                 in_scenario = true
-                outline = line.gsub /(Scenario:|Background:)/, 'h3. {color:blue}*\1*{color}'
+                outline = scenario_for line, @config['scenario']
 
               when /Given\s/
                 if in_scenario
-                  outline = line.gsub /(Given)\s/, '{color:indigo}*\1*{color} '
-                  and_color = "indigo"
+                  step_type = "given"
+                  outline = given_for line, @config['given']
                   table_header = false
                 end
 
               when /When\s/
                 if in_scenario
-                  outline = line.gsub /(When)\s/, '{color:orange}*\1*{color} ' 
-                  and_color = "orange"
+                  step_type = "when"
+                  outline = when_for line, @config['when']
                   table_header = false
                 end
+
               when /Then\s/
                 if in_scenario
-                  outline = line.gsub /(Then)\s/, '{color:green}*\1*{color} ' 
-                  and_color = "green"
+                  step_type = "then"
+                  outline = then_for line, @config['then']
                   table_header = false
-                  in_thens = true
                 end
 
               when /And\s/
                 if in_scenario
-                  outline = line.gsub /(And)\s/, '{color:' + and_color + '}*\1*{color} '
+                  outline = and_for line, @config[step_type]
                   table_header = false
                 end
 
@@ -69,16 +73,15 @@ module Cuper
 
               when /\|.*\|/
                 if in_scenario && !table_header
-                  outline = line.gsub /\|/, '||' 
+                  #outline = line.gsub /\|/, '||' 
+                  outline = table_for line, @config['table_head']
                   table_header = true
                 end
 
               else
-                if in_scenario && in_thens
+                if in_scenario && step_type == "then"
                   in_scenario = false
-                  in_thens = false
-              
-                  outline = "\n\t\t{color:grey}#{tags.join(" ")}{color}\n\n" if tags.size > 0
+                  outline = "#{tags_for(tags.join(" "), @config['tag'])}\n\n" if tags.size > 0
                 end
             end  
             
