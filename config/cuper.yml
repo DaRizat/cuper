@@ -1,0 +1,22 @@
+feature:
+  heading:h2
+  color:blue
+
+scenario:
+  heading:h3
+  color:blue
+
+given:
+  strong:true
+  color:indigo
+
+when:
+  strong:true
+  color:orange
+
+then:
+  strong:true
+  color:green
+
+tag:
+  color:grey

@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'cuper'
+
+cuper = Cuper::CLI.new
+cuper.init
+cuper.run
