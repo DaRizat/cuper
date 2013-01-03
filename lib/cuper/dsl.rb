@@ -38,7 +38,6 @@ module Cuper
     end
 
     def cite text
-
       replace_text @config[:cite], text
     end
 
@@ -64,7 +63,7 @@ module Cuper
 
     def list level
       ret = ""
-      level.times.do
+      level.times do
         ret += @config[:list]
       end
       ret
@@ -72,7 +71,7 @@ module Cuper
 
     def bullet level
       ret = ""
-      level.times.do
+      level.times do
         ret += @config[:bullet]
       end
       ret
@@ -80,7 +79,7 @@ module Cuper
 
     def numlist level
       ret = ""
-      level.times.do
+      level.times do
         ret += @config[:numbered_list]
       end
       ret
@@ -89,6 +88,5 @@ module Cuper
     def replace_text text, conf
       conf.gsub(/<%.*%>/, text)
     end
-
   end
 end
